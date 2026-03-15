@@ -7,12 +7,19 @@
  */
 
 export * from "./clinicalCase";
+export * from "./consultation";
+export * from "./consultationStatus";
 export * from "./createCaseRequest";
 export * from "./createCaseRequestGender";
 export * from "./createCaseRequestReportType";
+export * from "./createConsultationRequest";
+export * from "./createConsultationRequestPreferredLanguage";
+export * from "./doctor";
 export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./joinConsultationResponse";
 export * from "./recommendedAction";
 export * from "./riskLevel";
+export * from "./specialty";
 export * from "./successResponse";
 export * from "./vitalSigns";

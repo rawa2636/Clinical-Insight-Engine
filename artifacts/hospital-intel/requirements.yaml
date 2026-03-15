@@ -1,17 +1,12 @@
 packages:
-  "framer-motion": "For smooth transitions, emergency alert pulses, and page animations"
-  "react-hook-form": "For complex multi-step report submission form"
-  "@hookform/resolvers": "For integrating Zod validation with react-hook-form"
-  "date-fns": "For human-readable date formatting on clinical cases"
-  "clsx": "For conditional class merging"
-  "tailwind-merge": "For clean tailwind class merging"
+  "framer-motion": "For page transitions and interactive animations"
+  "date-fns": "For formatting dates and times in the consultation scheduler"
+  "lucide-react": "For UI icons across the application"
+  "clsx": "For conditional class names"
+  "tailwind-merge": "For merging tailwind classes"
 
-images:
-  - path: "artifacts/hospital-intel/public/images/logo.png"
-    description: "Minimalist, premium medical technology logo, featuring a subtle glowing blue and teal cross or data node, transparent background, clean vector style"
-    aspect_ratio: "1:1"
+images: []
 
 notes:
-  - Using pre-generated API hooks from @workspace/api-client-react.
-  - Adding wrapper hooks to handle React Query invalidation elegantly.
-  - Implementing Arabic text rendering with dir="rtl" for bilingual summaries.
+  - "Using generated hooks from @workspace/api-client-react"
+  - "Bilingual UI requirements respected (English + Arabic with RTL support)"

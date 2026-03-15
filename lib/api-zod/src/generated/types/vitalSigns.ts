@@ -7,14 +7,10 @@
  */
 
 export interface VitalSigns {
-  /** Temperature in Celsius */
   temperature?: number;
-  /** Heart rate in bpm */
   heartRate?: number;
   bloodPressureSystolic?: number;
   bloodPressureDiastolic?: number;
-  /** SpO2 percentage */
   oxygenSaturation?: number;
-  /** Breaths per minute */
   respiratoryRate?: number;
 }

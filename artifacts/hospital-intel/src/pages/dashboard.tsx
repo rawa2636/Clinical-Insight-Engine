@@ -1,6 +1,6 @@
-import { useListCases } from "@/hooks/use-cases";
+import { useListCases } from "@workspace/api-client-react";
 import { CaseCard } from "@/components/case-card";
-import { AlertTriangle, Activity, Users, Filter, Loader2, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Activity, Users, Filter, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {

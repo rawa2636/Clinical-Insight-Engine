@@ -18,9 +18,13 @@ import type {
 
 import type {
   ClinicalCase,
+  Consultation,
   CreateCaseRequest,
+  CreateConsultationRequest,
+  Doctor,
   ErrorResponse,
   HealthStatus,
+  JoinConsultationResponse,
   SuccessResponse,
 } from "./api.schemas";
 
@@ -34,7 +38,6 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const getHealthCheckUrl = () => {
@@ -506,3 +509,496 @@ export const useAcknowledgeCase = <
 > => {
   return useMutation(getAcknowledgeCaseMutationOptions(options));
 };
+
+/**
+ * @summary List available specialist doctors
+ */
+export const getListDoctorsUrl = () => {
+  return `/api/doctors`;
+};
+
+export const listDoctors = async (options?: RequestInit): Promise<Doctor[]> => {
+  return customFetch<Doctor[]>(getListDoctorsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDoctorsQueryKey = () => {
+  return [`/api/doctors`] as const;
+};
+
+export const getListDoctorsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDoctors>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDoctors>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDoctorsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDoctors>>> = ({
+    signal,
+  }) => listDoctors({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDoctors>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDoctorsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDoctors>>
+>;
+export type ListDoctorsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List available specialist doctors
+ */
+
+export function useListDoctors<
+  TData = Awaited<ReturnType<typeof listDoctors>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDoctors>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDoctorsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all consultations
+ */
+export const getListConsultationsUrl = () => {
+  return `/api/consultations`;
+};
+
+export const listConsultations = async (
+  options?: RequestInit,
+): Promise<Consultation[]> => {
+  return customFetch<Consultation[]>(getListConsultationsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListConsultationsQueryKey = () => {
+  return [`/api/consultations`] as const;
+};
+
+export const getListConsultationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listConsultations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listConsultations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListConsultationsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listConsultations>>
+  > = ({ signal }) => listConsultations({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listConsultations>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListConsultationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listConsultations>>
+>;
+export type ListConsultationsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all consultations
+ */
+
+export function useListConsultations<
+  TData = Awaited<ReturnType<typeof listConsultations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listConsultations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListConsultationsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Book an online consultation
+ */
+export const getCreateConsultationUrl = () => {
+  return `/api/consultations`;
+};
+
+export const createConsultation = async (
+  createConsultationRequest: CreateConsultationRequest,
+  options?: RequestInit,
+): Promise<Consultation> => {
+  return customFetch<Consultation>(getCreateConsultationUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createConsultationRequest),
+  });
+};
+
+export const getCreateConsultationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createConsultation>>,
+    TError,
+    { data: BodyType<CreateConsultationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createConsultation>>,
+  TError,
+  { data: BodyType<CreateConsultationRequest> },
+  TContext
+> => {
+  const mutationKey = ["createConsultation"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createConsultation>>,
+    { data: BodyType<CreateConsultationRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createConsultation(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateConsultationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createConsultation>>
+>;
+export type CreateConsultationMutationBody =
+  BodyType<CreateConsultationRequest>;
+export type CreateConsultationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Book an online consultation
+ */
+export const useCreateConsultation = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createConsultation>>,
+    TError,
+    { data: BodyType<CreateConsultationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createConsultation>>,
+  TError,
+  { data: BodyType<CreateConsultationRequest> },
+  TContext
+> => {
+  return useMutation(getCreateConsultationMutationOptions(options));
+};
+
+/**
+ * @summary Get consultation details
+ */
+export const getGetConsultationUrl = (id: number) => {
+  return `/api/consultations/${id}`;
+};
+
+export const getConsultation = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Consultation> => {
+  return customFetch<Consultation>(getGetConsultationUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetConsultationQueryKey = (id: number) => {
+  return [`/api/consultations/${id}`] as const;
+};
+
+export const getGetConsultationQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConsultation>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConsultation>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetConsultationQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsultation>>> = ({
+    signal,
+  }) => getConsultation(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConsultation>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConsultationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConsultation>>
+>;
+export type GetConsultationQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get consultation details
+ */
+
+export function useGetConsultation<
+  TData = Awaited<ReturnType<typeof getConsultation>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConsultation>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConsultationQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Cancel a consultation
+ */
+export const getCancelConsultationUrl = (id: number) => {
+  return `/api/consultations/${id}/cancel`;
+};
+
+export const cancelConsultation = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Consultation> => {
+  return customFetch<Consultation>(getCancelConsultationUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCancelConsultationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelConsultation>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelConsultation>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["cancelConsultation"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelConsultation>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return cancelConsultation(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelConsultationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelConsultation>>
+>;
+
+export type CancelConsultationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Cancel a consultation
+ */
+export const useCancelConsultation = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelConsultation>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof cancelConsultation>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getCancelConsultationMutationOptions(options));
+};
+
+/**
+ * @summary Get join link for consultation
+ */
+export const getJoinConsultationUrl = (id: number) => {
+  return `/api/consultations/${id}/join`;
+};
+
+export const joinConsultation = async (
+  id: number,
+  options?: RequestInit,
+): Promise<JoinConsultationResponse> => {
+  return customFetch<JoinConsultationResponse>(getJoinConsultationUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getJoinConsultationQueryKey = (id: number) => {
+  return [`/api/consultations/${id}/join`] as const;
+};
+
+export const getJoinConsultationQueryOptions = <
+  TData = Awaited<ReturnType<typeof joinConsultation>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof joinConsultation>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getJoinConsultationQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof joinConsultation>>
+  > = ({ signal }) => joinConsultation(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof joinConsultation>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type JoinConsultationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof joinConsultation>>
+>;
+export type JoinConsultationQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get join link for consultation
+ */
+
+export function useJoinConsultation<
+  TData = Awaited<ReturnType<typeof joinConsultation>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof joinConsultation>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getJoinConsultationQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

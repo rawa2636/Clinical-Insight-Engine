@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -27,12 +26,12 @@ export const ListCasesResponseItem = zod.object({
   symptoms: zod.array(zod.string()),
   vitalSigns: zod
     .object({
-      temperature: zod.number().optional().describe("Temperature in Celsius"),
-      heartRate: zod.number().optional().describe("Heart rate in bpm"),
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
       bloodPressureSystolic: zod.number().optional(),
       bloodPressureDiastolic: zod.number().optional(),
-      oxygenSaturation: zod.number().optional().describe("SpO2 percentage"),
-      respiratoryRate: zod.number().optional().describe("Breaths per minute"),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
     })
     .optional(),
   medicalHistory: zod.string().optional(),
@@ -66,12 +65,12 @@ export const CreateCaseBody = zod.object({
   symptoms: zod.array(zod.string()),
   vitalSigns: zod
     .object({
-      temperature: zod.number().optional().describe("Temperature in Celsius"),
-      heartRate: zod.number().optional().describe("Heart rate in bpm"),
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
       bloodPressureSystolic: zod.number().optional(),
       bloodPressureDiastolic: zod.number().optional(),
-      oxygenSaturation: zod.number().optional().describe("SpO2 percentage"),
-      respiratoryRate: zod.number().optional().describe("Breaths per minute"),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
     })
     .optional(),
   medicalHistory: zod.string().optional(),
@@ -96,12 +95,12 @@ export const GetCaseResponse = zod.object({
   symptoms: zod.array(zod.string()),
   vitalSigns: zod
     .object({
-      temperature: zod.number().optional().describe("Temperature in Celsius"),
-      heartRate: zod.number().optional().describe("Heart rate in bpm"),
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
       bloodPressureSystolic: zod.number().optional(),
       bloodPressureDiastolic: zod.number().optional(),
-      oxygenSaturation: zod.number().optional().describe("SpO2 percentage"),
-      respiratoryRate: zod.number().optional().describe("Breaths per minute"),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
     })
     .optional(),
   medicalHistory: zod.string().optional(),
@@ -151,12 +150,12 @@ export const AcknowledgeCaseResponse = zod.object({
   symptoms: zod.array(zod.string()),
   vitalSigns: zod
     .object({
-      temperature: zod.number().optional().describe("Temperature in Celsius"),
-      heartRate: zod.number().optional().describe("Heart rate in bpm"),
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
       bloodPressureSystolic: zod.number().optional(),
       bloodPressureDiastolic: zod.number().optional(),
-      oxygenSaturation: zod.number().optional().describe("SpO2 percentage"),
-      respiratoryRate: zod.number().optional().describe("Breaths per minute"),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
     })
     .optional(),
   medicalHistory: zod.string().optional(),
@@ -176,4 +175,203 @@ export const AcknowledgeCaseResponse = zod.object({
   acknowledged: zod.boolean(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
+});
+
+/**
+ * @summary List available specialist doctors
+ */
+export const ListDoctorsResponseItem = zod.object({
+  id: zod.number(),
+  nameEn: zod.string(),
+  nameAr: zod.string(),
+  specialty: zod.enum([
+    "GENERAL",
+    "CARDIOLOGY",
+    "PULMONOLOGY",
+    "NEUROLOGY",
+    "INTERNAL_MEDICINE",
+    "EMERGENCY_MEDICINE",
+    "PEDIATRICS",
+    "ORTHOPEDICS",
+    "DERMATOLOGY",
+    "PSYCHIATRY",
+  ]),
+  specialtyLabelEn: zod.string(),
+  specialtyLabelAr: zod.string(),
+  qualifications: zod.string(),
+  experience: zod.number().describe("Years of experience"),
+  rating: zod.number(),
+  avatarInitials: zod.string(),
+  isAvailable: zod.boolean(),
+  consultationFeeUsd: zod.number(),
+  languages: zod.array(zod.string()),
+});
+export const ListDoctorsResponse = zod.array(ListDoctorsResponseItem);
+
+/**
+ * @summary List all consultations
+ */
+export const ListConsultationsResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  doctorId: zod.number(),
+  doctor: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      specialty: zod.enum([
+        "GENERAL",
+        "CARDIOLOGY",
+        "PULMONOLOGY",
+        "NEUROLOGY",
+        "INTERNAL_MEDICINE",
+        "EMERGENCY_MEDICINE",
+        "PEDIATRICS",
+        "ORTHOPEDICS",
+        "DERMATOLOGY",
+        "PSYCHIATRY",
+      ]),
+      specialtyLabelEn: zod.string(),
+      specialtyLabelAr: zod.string(),
+      qualifications: zod.string(),
+      experience: zod.number().describe("Years of experience"),
+      rating: zod.number(),
+      avatarInitials: zod.string(),
+      isAvailable: zod.boolean(),
+      consultationFeeUsd: zod.number(),
+      languages: zod.array(zod.string()),
+    })
+    .optional(),
+  patientName: zod.string(),
+  scheduledAt: zod.date(),
+  status: zod.enum(["SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"]),
+  patientNotes: zod.string().optional(),
+  preferredLanguage: zod.string().optional(),
+  meetingRoomId: zod.string(),
+  createdAt: zod.date(),
+});
+export const ListConsultationsResponse = zod.array(
+  ListConsultationsResponseItem,
+);
+
+/**
+ * @summary Book an online consultation
+ */
+export const CreateConsultationBody = zod.object({
+  caseId: zod.number(),
+  doctorId: zod.number(),
+  scheduledAt: zod.date(),
+  patientNotes: zod.string().optional(),
+  preferredLanguage: zod.enum(["EN", "AR"]).optional(),
+});
+
+/**
+ * @summary Get consultation details
+ */
+export const GetConsultationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetConsultationResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  doctorId: zod.number(),
+  doctor: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      specialty: zod.enum([
+        "GENERAL",
+        "CARDIOLOGY",
+        "PULMONOLOGY",
+        "NEUROLOGY",
+        "INTERNAL_MEDICINE",
+        "EMERGENCY_MEDICINE",
+        "PEDIATRICS",
+        "ORTHOPEDICS",
+        "DERMATOLOGY",
+        "PSYCHIATRY",
+      ]),
+      specialtyLabelEn: zod.string(),
+      specialtyLabelAr: zod.string(),
+      qualifications: zod.string(),
+      experience: zod.number().describe("Years of experience"),
+      rating: zod.number(),
+      avatarInitials: zod.string(),
+      isAvailable: zod.boolean(),
+      consultationFeeUsd: zod.number(),
+      languages: zod.array(zod.string()),
+    })
+    .optional(),
+  patientName: zod.string(),
+  scheduledAt: zod.date(),
+  status: zod.enum(["SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"]),
+  patientNotes: zod.string().optional(),
+  preferredLanguage: zod.string().optional(),
+  meetingRoomId: zod.string(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Cancel a consultation
+ */
+export const CancelConsultationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CancelConsultationResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  doctorId: zod.number(),
+  doctor: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      specialty: zod.enum([
+        "GENERAL",
+        "CARDIOLOGY",
+        "PULMONOLOGY",
+        "NEUROLOGY",
+        "INTERNAL_MEDICINE",
+        "EMERGENCY_MEDICINE",
+        "PEDIATRICS",
+        "ORTHOPEDICS",
+        "DERMATOLOGY",
+        "PSYCHIATRY",
+      ]),
+      specialtyLabelEn: zod.string(),
+      specialtyLabelAr: zod.string(),
+      qualifications: zod.string(),
+      experience: zod.number().describe("Years of experience"),
+      rating: zod.number(),
+      avatarInitials: zod.string(),
+      isAvailable: zod.boolean(),
+      consultationFeeUsd: zod.number(),
+      languages: zod.array(zod.string()),
+    })
+    .optional(),
+  patientName: zod.string(),
+  scheduledAt: zod.date(),
+  status: zod.enum(["SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"]),
+  patientNotes: zod.string().optional(),
+  preferredLanguage: zod.string().optional(),
+  meetingRoomId: zod.string(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Get join link for consultation
+ */
+export const JoinConsultationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const JoinConsultationResponse = zod.object({
+  consultationId: zod.number(),
+  meetingRoomId: zod.string(),
+  joinUrl: zod.string(),
+  status: zod.enum(["SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"]),
 });

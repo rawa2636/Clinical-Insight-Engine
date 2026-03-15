@@ -1,11 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FilePlus2, Activity, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, FilePlus2, Activity, Settings, LogOut, Video } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "New Report", href: "/new", icon: FilePlus2 },
-  { name: "System Status", href: "#", icon: Activity },
+  { name: "Dashboard", nameAr: "لوحة القيادة", href: "/", icon: LayoutDashboard },
+  { name: "New Report", nameAr: "تقرير جديد", href: "/new", icon: FilePlus2 },
+  { name: "Consultations", nameAr: "استشارات", href: "/consultations", icon: Video },
+  { name: "System Status", nameAr: "حالة النظام", href: "#", icon: Activity },
 ];
 
 export function Sidebar() {
@@ -20,7 +21,6 @@ export function Sidebar() {
             alt="Hospital Intel Logo" 
             className="h-7 w-7 object-contain"
             onError={(e) => {
-              // Fallback if image not generated yet
               (e.target as HTMLImageElement).style.display = 'none';
               (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
             }}
@@ -43,7 +43,7 @@ export function Sidebar() {
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -53,7 +53,10 @@ export function Sidebar() {
                   isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                 )}
               />
-              {item.name}
+              <div className="flex flex-col">
+                <span>{item.name}</span>
+                <span className="text-[10px] opacity-70 font-arabic font-bold" dir="rtl">{item.nameAr}</span>
+              </div>
             </Link>
           );
         })}

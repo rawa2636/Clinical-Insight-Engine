@@ -1,17 +1,11 @@
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
-import { Clock, AlertTriangle, ArrowRight, User, Stethoscope, CheckCircle2 } from "lucide-react";
+import { User, Clock, Stethoscope, Video, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ClinicalCase } from "@workspace/api-client-react";
-import { useAcknowledgeCase } from "@/hooks/use-cases";
-import { useState } from "react";
 
 export function CaseCard({ data }: { data: ClinicalCase }) {
-  const { mutate: acknowledge, isPending: isAcknowledging } = useAcknowledgeCase();
-  const [showArabic, setShowArabic] = useState(false);
-
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'LOW': return 'success';
@@ -22,129 +16,84 @@ export function CaseCard({ data }: { data: ClinicalCase }) {
     }
   };
 
-  const getActionColor = (action: string) => {
-    switch (action) {
-      case 'EMERGENCY_RESPONSE': return 'text-destructive bg-destructive/10 border-destructive/20';
-      case 'HOSPITAL_VISIT': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'SCHEDULE_CONSULTATION': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'SELF_CARE': return 'text-success bg-success/10 border-success/20';
-      default: return 'text-muted-foreground bg-muted border-border';
-    }
-  };
-
   const isCriticalAlert = data.riskLevel === 'CRITICAL' && !data.acknowledged;
+  const needsConsultation = data.recommendedAction === 'SCHEDULE_CONSULTATION' || data.recommendedAction === 'HOSPITAL_VISIT';
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "group relative flex flex-col rounded-2xl bg-card p-5 shadow-sm border transition-all duration-300",
-        isCriticalAlert 
-          ? "border-destructive/50 shadow-[0_4px_20px_-4px_rgba(225,29,72,0.3)] ring-1 ring-destructive/20" 
-          : "border-border hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
+    <div className={cn(
+      "group flex flex-col bg-card rounded-2xl border transition-all duration-300 relative overflow-hidden",
+      isCriticalAlert ? "border-destructive/50 shadow-[0_0_20px_rgba(225,29,72,0.1)] hover:shadow-[0_0_25px_rgba(225,29,72,0.2)]" : "border-border shadow-sm hover:shadow-md hover:border-primary/30"
+    )}>
+      {isCriticalAlert && (
+        <div className="absolute top-0 left-0 w-full h-1 bg-destructive animate-pulse-fast"></div>
       )}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-full",
-            isCriticalAlert ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
-          )}>
-            <User className="h-6 w-6" />
+      
+      <div className="p-5 flex-1">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center",
+              isCriticalAlert ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+            )}>
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-foreground line-clamp-1">{data.patientName}</h3>
+              <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-0.5">
+                <span>{data.age}y</span>
+                <span className="w-1 h-1 rounded-full bg-border"></span>
+                <span>{data.gender.substring(0, 1)}</span>
+                <span className="w-1 h-1 rounded-full bg-border"></span>
+                <span className="flex items-center"><Clock className="w-3 h-3 mr-0.5" /> {format(new Date(data.createdAt), 'HH:mm')}</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="font-display font-semibold text-lg text-foreground line-clamp-1">
-              {data.patientName}
-            </h3>
-            <p className="text-sm font-medium text-muted-foreground">
-              {data.age} yrs • {data.gender}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <Badge variant={getRiskColor(data.riskLevel) as any} className="uppercase tracking-wider">
+          <Badge variant={getRiskColor(data.riskLevel) as any} className="text-[10px] px-2 py-0.5">
             {data.riskLevel}
           </Badge>
-          <span className="flex items-center text-xs text-muted-foreground">
-            <Clock className="mr-1 h-3 w-3" />
-            {format(new Date(data.createdAt), 'HH:mm')}
-          </span>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="flex-1 mb-4 space-y-4">
-        <div>
-          <h4 className="flex items-center text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-            <Stethoscope className="mr-1.5 h-3.5 w-3.5" /> Chief Complaint
-          </h4>
-          <p className="text-sm font-medium text-foreground line-clamp-2">
-            {data.chiefComplaint}
-          </p>
         </div>
 
-        <div className="rounded-xl bg-muted/50 p-3 border border-border/50">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              AI Summary
-            </h4>
-            <button 
-              onClick={(e) => { e.preventDefault(); setShowArabic(!showArabic); }}
-              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-            >
-              {showArabic ? "Show English" : "عربي"}
-            </button>
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 flex items-center">
+              <Stethoscope className="w-3 h-3 mr-1" /> Complaint
+            </p>
+            <p className="text-sm text-foreground font-medium line-clamp-2">{data.chiefComplaint}</p>
           </div>
           
-          {showArabic ? (
-            <p className="text-sm text-foreground/90 font-arabic leading-relaxed text-right" dir="rtl">
-              {data.briefArabic}
+          <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
+            <div className="flex justify-between items-center mb-1.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary">AI Summary</p>
+              <p className="text-xs font-bold font-arabic text-secondary" dir="rtl">عربي</p>
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+              {data.briefEnglish.split('\n')[2] || data.briefEnglish}
             </p>
-          ) : (
-            <p className="text-sm text-foreground/90 leading-relaxed line-clamp-3">
-              {data.briefEnglish}
-            </p>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Footer / Actions */}
-      <div className="mt-auto pt-4 border-t border-border flex items-center justify-between gap-3">
-        <div className={cn(
-          "px-3 py-1.5 rounded-lg text-xs font-bold flex items-center border",
-          getActionColor(data.recommendedAction)
-        )}>
-          {data.recommendedAction.replace('_', ' ')}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isCriticalAlert && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                acknowledge({ id: data.id });
-              }}
-              disabled={isAcknowledging}
-              className="flex items-center px-4 py-2 bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50 shadow-md shadow-destructive/20"
-            >
-              {isAcknowledging ? (
-                <span className="flex items-center"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> Saving...</span>
-              ) : (
-                <span className="flex items-center"><CheckCircle2 className="mr-1.5 h-4 w-4" /> Acknowledge</span>
-              )}
-            </button>
-          )}
-          
-          <Link
-            href={`/cases/${data.id}`}
-            className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+      <div className="border-t border-border p-3 bg-muted/20 flex items-center justify-between gap-2">
+        {needsConsultation && !isCriticalAlert ? (
+          <Link 
+            href={`/consultations?caseId=${data.id}`}
+            className="flex-1 flex items-center justify-center px-3 py-2 bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-bold rounded-lg transition-colors border border-secondary/20"
           >
-            <ArrowRight className="h-5 w-5" />
+            <Video className="w-3.5 h-3.5 mr-1.5" /> Book Consult
           </Link>
-        </div>
+        ) : (
+          <p className="flex-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate px-2">
+            ACT: {data.recommendedAction.replace('_', ' ')}
+          </p>
+        )}
+        
+        <Link 
+          href={`/cases/${data.id}`}
+          className="flex items-center justify-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-lg transition-colors shadow-sm"
+        >
+          View Details <ChevronRight className="w-3.5 h-3.5 ml-1 -mr-1" />
+        </Link>
       </div>
-    </motion.div>
+    </div>
   );
 }

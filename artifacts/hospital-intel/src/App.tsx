@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import Dashboard from "@/pages/dashboard";
 import NewReport from "@/pages/new-report";
 import CaseDetail from "@/pages/case-detail";
+import ConsultationsPage from "@/pages/consultations";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/new" component={NewReport} />
       <Route path="/cases/:id" component={CaseDetail} />
+      <Route path="/consultations" component={ConsultationsPage} />
       <Route component={NotFound} />
     </Switch>
   );

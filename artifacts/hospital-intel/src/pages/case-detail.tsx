@@ -1,10 +1,10 @@
 import { useRoute, Link, useLocation } from "wouter";
-import { useGetCase, useDeleteCase, useAcknowledgeCase } from "@/hooks/use-cases";
+import { useGetCase, useDeleteCase, useAcknowledgeCase } from "@workspace/api-client-react";
 import { format } from "date-fns";
 import { 
   ArrowLeft, Activity, User, Clock, AlertTriangle, 
   Trash2, ShieldAlert, HeartPulse, Stethoscope, 
-  FileText, CheckCircle2 
+  FileText, CheckCircle2, Video
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -45,18 +45,32 @@ export default function CaseDetail() {
   };
 
   const isCriticalAlert = caseData.riskLevel === 'CRITICAL' && !caseData.acknowledged;
+  const needsConsultation = caseData.recommendedAction === 'SCHEDULE_CONSULTATION' || caseData.recommendedAction === 'HOSPITAL_VISIT';
 
   return (
     <div className="flex-1 overflow-auto bg-background/50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         
         {/* Navigation & Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-3 py-2 -ml-3 rounded-lg hover:bg-muted">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <Link href="/" className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-3 py-2 -ml-3 rounded-lg hover:bg-muted w-fit">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Triage
           </Link>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {needsConsultation && (
+              <Link 
+                href={`/consultations?caseId=${caseData.id}`}
+                className="flex items-center px-4 py-2 bg-secondary hover:bg-secondary/90 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-secondary/20"
+              >
+                <Video className="w-4 h-4 mr-2" /> 
+                <span className="flex flex-col items-start leading-none">
+                  <span>Book Online Consult</span>
+                  <span className="text-[9px] font-arabic opacity-80" dir="rtl">احجز استشارة أونلاين</span>
+                </span>
+              </Link>
+            )}
+
             {isCriticalAlert && (
               <button
                 onClick={() => acknowledge({ id })}
@@ -66,6 +80,7 @@ export default function CaseDetail() {
                 <CheckCircle2 className="w-4 h-4 mr-2" /> Acknowledge Alert
               </button>
             )}
+            
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to delete this case record?')) {
@@ -96,29 +111,29 @@ export default function CaseDetail() {
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-destructive animate-pulse-fast"></div>
               )}
               
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                     <User className="w-8 h-8" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-display font-bold text-foreground">{caseData.patientName}</h1>
-                    <div className="flex items-center gap-3 mt-1 text-muted-foreground font-medium">
+                    <h1 className="text-3xl font-display font-bold text-foreground leading-tight">{caseData.patientName}</h1>
+                    <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-muted-foreground font-medium">
                       <span>{caseData.age} years</span>
                       <span className="w-1.5 h-1.5 rounded-full bg-border"></span>
                       <span>{caseData.gender}</span>
                       <span className="w-1.5 h-1.5 rounded-full bg-border"></span>
-                      <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1" /> {format(new Date(caseData.createdAt), 'MMM d, HH:mm')}</span>
+                      <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1" /> {format(new Date(caseData.createdAt), 'MMM d, yyyy - HH:mm')}</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <Badge variant={getRiskColor(caseData.riskLevel) as any} className="text-sm px-3 py-1 uppercase">
                     {caseData.riskLevel} RISK
                   </Badge>
-                  <p className="mt-2 text-sm font-bold text-foreground bg-muted px-3 py-1 rounded-lg inline-block border border-border">
-                    {caseData.recommendedAction.replace('_', ' ')}
+                  <p className="mt-2 text-xs font-bold text-foreground bg-muted px-3 py-1.5 rounded-lg inline-block border border-border">
+                    ACTION: {caseData.recommendedAction.replace('_', ' ')}
                   </p>
                 </div>
               </div>
@@ -186,7 +201,7 @@ export default function CaseDetail() {
               <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center">
                 <ShieldAlert className="w-4 h-4 mr-1.5" /> Identified Risk Factors
               </h3>
-              {caseData.riskFactors.length > 0 ? (
+              {caseData.riskFactors && caseData.riskFactors.length > 0 ? (
                 <ul className="space-y-3">
                   {caseData.riskFactors.map((factor, i) => (
                     <li key={i} className="flex items-start text-sm font-medium text-foreground bg-destructive/5 border border-destructive/10 p-3 rounded-xl">
@@ -196,14 +211,14 @@ export default function CaseDetail() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">No specific elevated risk factors identified in report.</p>
+                <p className="text-sm text-muted-foreground bg-muted p-4 rounded-xl border border-border/50 text-center">No specific elevated risk factors identified.</p>
               )}
             </div>
 
             {/* Vital Signs Grid */}
             <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
               <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center">
-                <HeartPulse className="w-4 h-4 mr-1.5 text-red-500" /> Vital Signs
+                <HeartPulse className="w-4 h-4 mr-1.5 text-destructive" /> Vital Signs
               </h3>
               
               <div className="grid grid-cols-2 gap-3">
@@ -228,11 +243,11 @@ export default function CaseDetail() {
             <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-6">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Medical History</h3>
-                <p className="text-sm text-foreground/90 bg-muted/50 p-3 rounded-xl border border-border/50">{caseData.medicalHistory || "None reported"}</p>
+                <p className="text-sm text-foreground/90 bg-muted/50 p-3 rounded-xl border border-border/50 min-h-[3rem]">{caseData.medicalHistory || "None reported"}</p>
               </div>
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Current Medications</h3>
-                <p className="text-sm text-foreground/90 bg-muted/50 p-3 rounded-xl border border-border/50">{caseData.currentMedications || "None reported"}</p>
+                <p className="text-sm text-foreground/90 bg-muted/50 p-3 rounded-xl border border-border/50 min-h-[3rem]">{caseData.currentMedications || "None reported"}</p>
               </div>
             </div>
 
@@ -249,8 +264,8 @@ function VitalBox({ label, value, unit }: { label: string, value?: number, unit:
     <div className="bg-muted p-3 rounded-xl border border-border/50 text-center flex flex-col justify-center h-20">
       <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">{label}</p>
       <p className="font-display font-bold text-xl text-foreground">
-        {value !== undefined ? value : '--'}
-        {value !== undefined && <span className="text-xs font-normal text-muted-foreground ml-0.5">{unit}</span>}
+        {value !== undefined && value !== null ? value : '--'}
+        {value !== undefined && value !== null && <span className="text-xs font-normal text-muted-foreground ml-0.5">{unit}</span>}
       </p>
     </div>
   );

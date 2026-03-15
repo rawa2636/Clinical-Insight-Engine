@@ -11,13 +11,16 @@ tags:
     description: Health operations
   - name: cases
     description: Clinical case operations
+  - name: consultations
+    description: Online doctor consultations
+  - name: doctors
+    description: Available doctors
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -119,6 +122,110 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClinicalCase"
 
+  /doctors:
+    get:
+      operationId: listDoctors
+      tags: [doctors]
+      summary: List available specialist doctors
+      responses:
+        "200":
+          description: List of doctors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doctor"
+
+  /consultations:
+    get:
+      operationId: listConsultations
+      tags: [consultations]
+      summary: List all consultations
+      responses:
+        "200":
+          description: List of consultations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Consultation"
+    post:
+      operationId: createConsultation
+      tags: [consultations]
+      summary: Book an online consultation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConsultationRequest"
+      responses:
+        "201":
+          description: Consultation booked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultation"
+
+  /consultations/{id}:
+    get:
+      operationId: getConsultation
+      tags: [consultations]
+      summary: Get consultation details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Consultation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultation"
+
+  /consultations/{id}/cancel:
+    post:
+      operationId: cancelConsultation
+      tags: [consultations]
+      summary: Cancel a consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Consultation cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultation"
+
+  /consultations/{id}/join:
+    get:
+      operationId: joinConsultation
+      tags: [consultations]
+      summary: Get join link for consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Join info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JoinConsultationResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -126,16 +233,14 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     ErrorResponse:
       type: object
       properties:
         error:
           type: string
-      required:
-        - error
+      required: [error]
 
     SuccessResponse:
       type: object
@@ -144,9 +249,7 @@ components:
           type: boolean
         message:
           type: string
-      required:
-        - success
-        - message
+      required: [success, message]
 
     RiskLevel:
       type: string
@@ -159,6 +262,24 @@ components:
         - SCHEDULE_CONSULTATION
         - HOSPITAL_VISIT
         - EMERGENCY_RESPONSE
+
+    ConsultationStatus:
+      type: string
+      enum: [SCHEDULED, ACTIVE, COMPLETED, CANCELLED]
+
+    Specialty:
+      type: string
+      enum:
+        - GENERAL
+        - CARDIOLOGY
+        - PULMONOLOGY
+        - NEUROLOGY
+        - INTERNAL_MEDICINE
+        - EMERGENCY_MEDICINE
+        - PEDIATRICS
+        - ORTHOPEDICS
+        - DERMATOLOGY
+        - PSYCHIATRY
 
     CreateCaseRequest:
       type: object
@@ -200,20 +321,16 @@ components:
       properties:
         temperature:
           type: number
-          description: Temperature in Celsius
         heartRate:
           type: integer
-          description: Heart rate in bpm
         bloodPressureSystolic:
           type: integer
         bloodPressureDiastolic:
           type: integer
         oxygenSaturation:
           type: number
-          description: SpO2 percentage
         respiratoryRate:
           type: integer
-          description: Breaths per minute
 
     ClinicalCase:
       type: object
@@ -278,3 +395,124 @@ components:
         - acknowledged
         - createdAt
         - updatedAt
+
+    Doctor:
+      type: object
+      properties:
+        id:
+          type: integer
+        nameEn:
+          type: string
+        nameAr:
+          type: string
+        specialty:
+          $ref: "#/components/schemas/Specialty"
+        specialtyLabelEn:
+          type: string
+        specialtyLabelAr:
+          type: string
+        qualifications:
+          type: string
+        experience:
+          type: integer
+          description: Years of experience
+        rating:
+          type: number
+        avatarInitials:
+          type: string
+        isAvailable:
+          type: boolean
+        consultationFeeUsd:
+          type: number
+        languages:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - nameEn
+        - nameAr
+        - specialty
+        - specialtyLabelEn
+        - specialtyLabelAr
+        - qualifications
+        - experience
+        - rating
+        - avatarInitials
+        - isAvailable
+        - consultationFeeUsd
+        - languages
+
+    CreateConsultationRequest:
+      type: object
+      properties:
+        caseId:
+          type: integer
+        doctorId:
+          type: integer
+        scheduledAt:
+          type: string
+          format: date-time
+        patientNotes:
+          type: string
+        preferredLanguage:
+          type: string
+          enum: [EN, AR]
+      required:
+        - caseId
+        - doctorId
+        - scheduledAt
+
+    Consultation:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        doctorId:
+          type: integer
+        doctor:
+          $ref: "#/components/schemas/Doctor"
+        patientName:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/ConsultationStatus"
+        patientNotes:
+          type: string
+        preferredLanguage:
+          type: string
+        meetingRoomId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - doctorId
+        - patientName
+        - scheduledAt
+        - status
+        - meetingRoomId
+        - createdAt
+
+    JoinConsultationResponse:
+      type: object
+      properties:
+        consultationId:
+          type: integer
+        meetingRoomId:
+          type: string
+        joinUrl:
+          type: string
+        status:
+          $ref: "#/components/schemas/ConsultationStatus"
+      required:
+        - consultationId
+        - meetingRoomId
+        - joinUrl
+        - status

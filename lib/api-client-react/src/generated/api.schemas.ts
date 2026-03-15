@@ -37,6 +37,31 @@ export const RecommendedAction = {
   EMERGENCY_RESPONSE: "EMERGENCY_RESPONSE",
 } as const;
 
+export type ConsultationStatus =
+  (typeof ConsultationStatus)[keyof typeof ConsultationStatus];
+
+export const ConsultationStatus = {
+  SCHEDULED: "SCHEDULED",
+  ACTIVE: "ACTIVE",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+export type Specialty = (typeof Specialty)[keyof typeof Specialty];
+
+export const Specialty = {
+  GENERAL: "GENERAL",
+  CARDIOLOGY: "CARDIOLOGY",
+  PULMONOLOGY: "PULMONOLOGY",
+  NEUROLOGY: "NEUROLOGY",
+  INTERNAL_MEDICINE: "INTERNAL_MEDICINE",
+  EMERGENCY_MEDICINE: "EMERGENCY_MEDICINE",
+  PEDIATRICS: "PEDIATRICS",
+  ORTHOPEDICS: "ORTHOPEDICS",
+  DERMATOLOGY: "DERMATOLOGY",
+  PSYCHIATRY: "PSYCHIATRY",
+} as const;
+
 export type CreateCaseRequestGender =
   (typeof CreateCaseRequestGender)[keyof typeof CreateCaseRequestGender];
 
@@ -55,15 +80,11 @@ export const CreateCaseRequestReportType = {
 } as const;
 
 export interface VitalSigns {
-  /** Temperature in Celsius */
   temperature?: number;
-  /** Heart rate in bpm */
   heartRate?: number;
   bloodPressureSystolic?: number;
   bloodPressureDiastolic?: number;
-  /** SpO2 percentage */
   oxygenSaturation?: number;
-  /** Breaths per minute */
   respiratoryRate?: number;
 }
 
@@ -100,4 +121,58 @@ export interface ClinicalCase {
   acknowledged: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Doctor {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  specialty: Specialty;
+  specialtyLabelEn: string;
+  specialtyLabelAr: string;
+  qualifications: string;
+  /** Years of experience */
+  experience: number;
+  rating: number;
+  avatarInitials: string;
+  isAvailable: boolean;
+  consultationFeeUsd: number;
+  languages: string[];
+}
+
+export type CreateConsultationRequestPreferredLanguage =
+  (typeof CreateConsultationRequestPreferredLanguage)[keyof typeof CreateConsultationRequestPreferredLanguage];
+
+export const CreateConsultationRequestPreferredLanguage = {
+  EN: "EN",
+  AR: "AR",
+} as const;
+
+export interface CreateConsultationRequest {
+  caseId: number;
+  doctorId: number;
+  scheduledAt: string;
+  patientNotes?: string;
+  preferredLanguage?: CreateConsultationRequestPreferredLanguage;
+}
+
+export interface Consultation {
+  id: number;
+  caseId: number;
+  doctorId: number;
+  doctor?: Doctor;
+  patientName: string;
+  scheduledAt: string;
+  status: ConsultationStatus;
+  patientNotes?: string;
+  preferredLanguage?: string;
+  meetingRoomId: string;
+  createdAt: string;
+}
+
+export interface JoinConsultationResponse {
+  consultationId: number;
+  meetingRoomId: string;
+  joinUrl: string;
+  status: ConsultationStatus;
 }

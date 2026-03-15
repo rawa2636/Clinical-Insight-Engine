@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Hospital Intelligence Platform"
+version = "1.0.0"
+id = "artifacts/hospital-intel"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 25849
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/hospital-intel run dev"
+
+[services.env]
+PORT = "25849"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/hospital-intel", "run", "build"]
+publicDir = "artifacts/hospital-intel/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

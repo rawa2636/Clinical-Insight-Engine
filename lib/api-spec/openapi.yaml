@@ -1,15 +1,16 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Hospital Intelligence Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: cases
+    description: Clinical case operations
 paths:
   /healthz:
     get:
@@ -24,6 +25,100 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List all clinical cases
+      responses:
+        "200":
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClinicalCase"
+    post:
+      operationId: createCase
+      tags: [cases]
+      summary: Submit a new clinical case report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseRequest"
+      responses:
+        "201":
+          description: Case created and analyzed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+
+  /cases/{id}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get a specific case by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Case details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCase
+      tags: [cases]
+      summary: Delete a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Case deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /cases/{id}/acknowledge:
+    post:
+      operationId: acknowledgeCase
+      tags: [cases]
+      summary: Acknowledge a CRITICAL case alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Case acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +129,152 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    RiskLevel:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+
+    RecommendedAction:
+      type: string
+      enum:
+        - SELF_CARE
+        - SCHEDULE_CONSULTATION
+        - HOSPITAL_VISIT
+        - EMERGENCY_RESPONSE
+
+    CreateCaseRequest:
+      type: object
+      properties:
+        patientName:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        chiefComplaint:
+          type: string
+        symptoms:
+          type: array
+          items:
+            type: string
+        vitalSigns:
+          $ref: "#/components/schemas/VitalSigns"
+        medicalHistory:
+          type: string
+        currentMedications:
+          type: string
+        reportType:
+          type: string
+          enum: [SOAP, JSON]
+        rawReport:
+          type: string
+      required:
+        - patientName
+        - age
+        - gender
+        - chiefComplaint
+        - symptoms
+        - reportType
+
+    VitalSigns:
+      type: object
+      properties:
+        temperature:
+          type: number
+          description: Temperature in Celsius
+        heartRate:
+          type: integer
+          description: Heart rate in bpm
+        bloodPressureSystolic:
+          type: integer
+        bloodPressureDiastolic:
+          type: integer
+        oxygenSaturation:
+          type: number
+          description: SpO2 percentage
+        respiratoryRate:
+          type: integer
+          description: Breaths per minute
+
+    ClinicalCase:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientName:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+        chiefComplaint:
+          type: string
+        symptoms:
+          type: array
+          items:
+            type: string
+        vitalSigns:
+          $ref: "#/components/schemas/VitalSigns"
+        medicalHistory:
+          type: string
+        currentMedications:
+          type: string
+        reportType:
+          type: string
+        rawReport:
+          type: string
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        recommendedAction:
+          $ref: "#/components/schemas/RecommendedAction"
+        riskFactors:
+          type: array
+          items:
+            type: string
+        briefEnglish:
+          type: string
+        briefArabic:
+          type: string
+        acknowledged:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - patientName
+        - age
+        - gender
+        - chiefComplaint
+        - symptoms
+        - reportType
+        - riskLevel
+        - recommendedAction
+        - riskFactors
+        - briefEnglish
+        - briefArabic
+        - acknowledged
+        - createdAt
+        - updatedAt

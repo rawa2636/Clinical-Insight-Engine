@@ -7,6 +7,7 @@
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
     "seed-hospitals": "tsx ./src/seed-hospitals.ts",
+    "seed-hajjah-cases": "tsx ./src/seed-hajjah-cases.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

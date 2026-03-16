@@ -260,7 +260,7 @@ async function seed() {
         ],
         briefEnglish: "HOSPITAL BRIEF — Risk Level: HIGH\n\nPatient: Layla Al-Mansouri, 45F. Thunderclap headache with meningismus. Temp 38.4, HR 102, BP 168/98. Suspect SAH — urgent CT + LP required.",
         briefArabic: "ملخص طبي — مستوى الخطورة: عالٍ\n\nالمريضة: ليلى المنصوري، 45 سنة، أنثى. صداع مفاجئ شديد مع تيبس الرقبة. حرارة 38.4، نبض 102، ضغط 168/98. اشتباه نزيف تحت العنكبوتية — يتطلب CT عاجل.",
-        caseStatus: "TRIAGE_COMPLETE",
+        caseStatus: "ANALYZED",
         acknowledged: true,
       },
 

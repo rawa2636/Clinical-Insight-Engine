@@ -49,6 +49,19 @@ export const ListCasesResponseItem = zod.object({
   briefEnglish: zod.string(),
   briefArabic: zod.string(),
   acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
@@ -118,6 +131,19 @@ export const GetCaseResponse = zod.object({
   briefEnglish: zod.string(),
   briefArabic: zod.string(),
   acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
@@ -173,6 +199,209 @@ export const AcknowledgeCaseResponse = zod.object({
   briefEnglish: zod.string(),
   briefArabic: zod.string(),
   acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Assign a doctor to a case
+ */
+export const AssignDoctorParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AssignDoctorBody = zod.object({
+  doctorId: zod.number(),
+});
+
+export const AssignDoctorResponse = zod.object({
+  id: zod.number(),
+  patientName: zod.string(),
+  age: zod.number(),
+  gender: zod.string(),
+  chiefComplaint: zod.string(),
+  symptoms: zod.array(zod.string()),
+  vitalSigns: zod
+    .object({
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
+      bloodPressureSystolic: zod.number().optional(),
+      bloodPressureDiastolic: zod.number().optional(),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
+    })
+    .optional(),
+  medicalHistory: zod.string().optional(),
+  currentMedications: zod.string().optional(),
+  reportType: zod.string(),
+  rawReport: zod.string().optional(),
+  riskLevel: zod.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  recommendedAction: zod.enum([
+    "SELF_CARE",
+    "SCHEDULE_CONSULTATION",
+    "HOSPITAL_VISIT",
+    "EMERGENCY_RESPONSE",
+  ]),
+  riskFactors: zod.array(zod.string()),
+  briefEnglish: zod.string(),
+  briefArabic: zod.string(),
+  acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Doctor records diagnosis notes
+ */
+export const UpdateDiagnosisParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDiagnosisBody = zod.object({
+  diagnosisNotes: zod.string(),
+  status: zod.enum(["DIAGNOSIS_IN_PROGRESS", "COMPLETED"]).optional(),
+});
+
+export const UpdateDiagnosisResponse = zod.object({
+  id: zod.number(),
+  patientName: zod.string(),
+  age: zod.number(),
+  gender: zod.string(),
+  chiefComplaint: zod.string(),
+  symptoms: zod.array(zod.string()),
+  vitalSigns: zod
+    .object({
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
+      bloodPressureSystolic: zod.number().optional(),
+      bloodPressureDiastolic: zod.number().optional(),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
+    })
+    .optional(),
+  medicalHistory: zod.string().optional(),
+  currentMedications: zod.string().optional(),
+  reportType: zod.string(),
+  rawReport: zod.string().optional(),
+  riskLevel: zod.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  recommendedAction: zod.enum([
+    "SELF_CARE",
+    "SCHEDULE_CONSULTATION",
+    "HOSPITAL_VISIT",
+    "EMERGENCY_RESPONSE",
+  ]),
+  riskFactors: zod.array(zod.string()),
+  briefEnglish: zod.string(),
+  briefArabic: zod.string(),
+  acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Update the lifecycle status of a case
+ */
+export const UpdateCaseStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCaseStatusBody = zod.object({
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+});
+
+export const UpdateCaseStatusResponse = zod.object({
+  id: zod.number(),
+  patientName: zod.string(),
+  age: zod.number(),
+  gender: zod.string(),
+  chiefComplaint: zod.string(),
+  symptoms: zod.array(zod.string()),
+  vitalSigns: zod
+    .object({
+      temperature: zod.number().optional(),
+      heartRate: zod.number().optional(),
+      bloodPressureSystolic: zod.number().optional(),
+      bloodPressureDiastolic: zod.number().optional(),
+      oxygenSaturation: zod.number().optional(),
+      respiratoryRate: zod.number().optional(),
+    })
+    .optional(),
+  medicalHistory: zod.string().optional(),
+  currentMedications: zod.string().optional(),
+  reportType: zod.string(),
+  rawReport: zod.string().optional(),
+  riskLevel: zod.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  recommendedAction: zod.enum([
+    "SELF_CARE",
+    "SCHEDULE_CONSULTATION",
+    "HOSPITAL_VISIT",
+    "EMERGENCY_RESPONSE",
+  ]),
+  riskFactors: zod.array(zod.string()),
+  briefEnglish: zod.string(),
+  briefArabic: zod.string(),
+  acknowledged: zod.boolean(),
+  caseStatus: zod.enum([
+    "REPORT_RECEIVED",
+    "ANALYZED",
+    "CASE_CREATED",
+    "ROUTED_TO_HOSPITAL",
+    "RECEIVED_BY_HOSPITAL",
+    "ASSIGNED_TO_DOCTOR",
+    "DIAGNOSIS_IN_PROGRESS",
+    "COMPLETED",
+  ]),
+  assignedDoctorId: zod.number().optional(),
+  diagnosisNotes: zod.string().optional(),
+  recommendedDepartment: zod.string().optional(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
@@ -207,6 +436,481 @@ export const ListDoctorsResponseItem = zod.object({
   languages: zod.array(zod.string()),
 });
 export const ListDoctorsResponse = zod.array(ListDoctorsResponseItem);
+
+/**
+ * @summary List hospitals in the network
+ */
+export const ListHospitalsResponseItem = zod.object({
+  id: zod.number(),
+  nameEn: zod.string(),
+  nameAr: zod.string(),
+  city: zod.string(),
+  address: zod.string(),
+  phone: zod.string(),
+  specialties: zod.array(zod.string()),
+  isAvailable: zod.string(),
+  level: zod.string(),
+});
+export const ListHospitalsResponse = zod.array(ListHospitalsResponseItem);
+
+/**
+ * @summary List all hospital transfers
+ */
+export const ListTransfersResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListTransfersResponse = zod.array(ListTransfersResponseItem);
+
+/**
+ * @summary Create a hospital transfer request
+ */
+export const CreateTransferBody = zod.object({
+  caseId: zod.number().optional(),
+  direction: zod.enum(["OUTGOING", "INCOMING"]),
+  toHospitalId: zod.number().optional(),
+  fromHospitalId: zod.number().optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.enum([
+    "AMBULANCE",
+    "AIR_AMBULANCE",
+    "PRIVATE_VEHICLE",
+    "HOSPITAL_TRANSPORT",
+  ]),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+});
+
+/**
+ * @summary Get a transfer by ID
+ */
+export const GetTransferParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetTransferResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Accept an incoming transfer
+ */
+export const AcceptTransferParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AcceptTransferResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Reject a transfer
+ */
+export const RejectTransferParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RejectTransferBody = zod.object({
+  reason: zod.string().optional(),
+});
+
+export const RejectTransferResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Mark transfer as in-transit
+ */
+export const MarkTransferInTransitParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkTransferInTransitResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Mark transfer as arrived
+ */
+export const MarkTransferArrivedParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkTransferArrivedResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Cancel a transfer
+ */
+export const CancelTransferParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CancelTransferResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number().optional(),
+  direction: zod.string(),
+  fromHospitalId: zod.number(),
+  toHospitalId: zod.number(),
+  fromHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  toHospital: zod
+    .object({
+      id: zod.number(),
+      nameEn: zod.string(),
+      nameAr: zod.string(),
+      city: zod.string(),
+      address: zod.string(),
+      phone: zod.string(),
+      specialties: zod.array(zod.string()),
+      isAvailable: zod.string(),
+      level: zod.string(),
+    })
+    .optional(),
+  patientName: zod.string(),
+  patientAge: zod.number(),
+  patientGender: zod.string(),
+  chiefComplaint: zod.string(),
+  riskLevel: zod.string(),
+  transportMethod: zod.string(),
+  clinicalSummary: zod.string(),
+  specialRequirements: zod.string().optional(),
+  estimatedArrival: zod.date().optional(),
+  status: zod.enum([
+    "PENDING",
+    "ACCEPTED",
+    "IN_TRANSIT",
+    "ARRIVED",
+    "REJECTED",
+    "CANCELLED",
+  ]),
+  rejectionReason: zod.string().optional(),
+  transferCode: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
 
 /**
  * @summary List all consultations

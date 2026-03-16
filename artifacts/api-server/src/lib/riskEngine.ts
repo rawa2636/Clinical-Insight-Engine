@@ -373,3 +373,19 @@ export function generateBriefArabic(input: {
 
 الإجراء الموصى به: ${actionMapAr[input.recommendedAction]}`;
 }
+
+export function recommendDepartment(symptoms: string[], chiefComplaint: string, riskLevel: RiskLevel): string {
+  const text = [...symptoms, chiefComplaint].join(" ").toLowerCase();
+
+  if (riskLevel === "CRITICAL") return "Emergency Department";
+  if (/chest|cardiac|heart|myocardial|coronary|palpitation/.test(text)) return "Cardiology";
+  if (/breath|pulmonary|lung|respiratory|asthma|copd/.test(text)) return "Pulmonology";
+  if (/neuro|brain|stroke|seizure|headache|paralysis|numbness/.test(text)) return "Neurology";
+  if (/bone|fracture|joint|orthopedic|sprain|knee|hip/.test(text)) return "Orthopedics";
+  if (/child|pediatric|infant|baby/.test(text)) return "Pediatrics";
+  if (/mental|psychiatry|anxiety|depression|psychosis/.test(text)) return "Psychiatry";
+  if (/skin|rash|dermatology|allergy/.test(text)) return "Dermatology";
+  if (/abdomen|gastro|bowel|colon|stomach|liver/.test(text)) return "Gastroenterology";
+  if (riskLevel === "HIGH") return "Internal Medicine";
+  return "General Medicine";
+}

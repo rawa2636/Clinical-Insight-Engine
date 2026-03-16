@@ -143,7 +143,11 @@ router.post("/transfers/:id/accept", async (req: Request, res: Response) => {
         briefEnglish: `Incoming transfer from hospital. Patient: ${updated.patientName}. ${updated.clinicalSummary}`,
         briefArabic: `حالة واردة من مستشفى أخرى. المريض: ${updated.patientName}. ${updated.clinicalSummary}`,
         acknowledged: false,
+        caseStatus: "RECEIVED_BY_HOSPITAL",
       });
+    }
+    if (updated.direction === "OUTGOING" && updated.caseId) {
+      await db.update(casesTable).set({ caseStatus: "ROUTED_TO_HOSPITAL", updatedAt: new Date() }).where(eq(casesTable.id, updated.caseId));
     }
 
     res.json(await enrichTransfer(updated));

@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./assignDoctorRequest";
+export * from "./caseStatus";
 export * from "./clinicalCase";
 export * from "./consultation";
 export * from "./consultationStatus";
@@ -14,12 +16,22 @@ export * from "./createCaseRequestGender";
 export * from "./createCaseRequestReportType";
 export * from "./createConsultationRequest";
 export * from "./createConsultationRequestPreferredLanguage";
+export * from "./createTransferRequest";
+export * from "./createTransferRequestDirection";
+export * from "./createTransferRequestTransportMethod";
+export * from "./diagnosisRequest";
+export * from "./diagnosisRequestStatus";
 export * from "./doctor";
 export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./hospital";
 export * from "./joinConsultationResponse";
 export * from "./recommendedAction";
+export * from "./rejectTransferBody";
 export * from "./riskLevel";
 export * from "./specialty";
 export * from "./successResponse";
+export * from "./transfer";
+export * from "./transferStatus";
+export * from "./updateStatusRequest";
 export * from "./vitalSigns";

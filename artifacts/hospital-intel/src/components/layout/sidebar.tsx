@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FilePlus2, Activity, Settings, LogOut, Video } from "lucide-react";
+import { LayoutDashboard, FilePlus2, Activity, Settings, LogOut, Video, ArrowLeftRight, Stethoscope } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", nameAr: "لوحة القيادة", href: "/", icon: LayoutDashboard },
+  { name: "Triage Dashboard", nameAr: "لوحة الفرز", href: "/", icon: LayoutDashboard },
   { name: "New Report", nameAr: "تقرير جديد", href: "/new", icon: FilePlus2 },
   { name: "Consultations", nameAr: "استشارات", href: "/consultations", icon: Video },
-  { name: "System Status", nameAr: "حالة النظام", href: "#", icon: Activity },
+  { name: "Hospital Transfers", nameAr: "تحويلات المستشفيات", href: "/transfers", icon: ArrowLeftRight },
+  { name: "Doctors", nameAr: "الأطباء", href: "/doctors", icon: Stethoscope },
 ];
 
 export function Sidebar() {

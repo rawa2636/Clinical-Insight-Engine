@@ -12,6 +12,17 @@ export const recommendedActionEnum = pgEnum("recommended_action", [
 export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER"]);
 export const reportTypeEnum = pgEnum("report_type", ["SOAP", "JSON"]);
 
+export const caseStatusEnum = pgEnum("case_status", [
+  "REPORT_RECEIVED",
+  "ANALYZED",
+  "CASE_CREATED",
+  "ROUTED_TO_HOSPITAL",
+  "RECEIVED_BY_HOSPITAL",
+  "ASSIGNED_TO_DOCTOR",
+  "DIAGNOSIS_IN_PROGRESS",
+  "COMPLETED",
+]);
+
 export const casesTable = pgTable("clinical_cases", {
   id: serial("id").primaryKey(),
   patientName: text("patient_name").notNull(),
@@ -37,6 +48,10 @@ export const casesTable = pgTable("clinical_cases", {
   briefEnglish: text("brief_english").notNull(),
   briefArabic: text("brief_arabic").notNull(),
   acknowledged: boolean("acknowledged").notNull().default(false),
+  caseStatus: caseStatusEnum("case_status").notNull().default("CASE_CREATED"),
+  assignedDoctorId: integer("assigned_doctor_id"),
+  diagnosisNotes: text("diagnosis_notes"),
+  recommendedDepartment: text("recommended_department"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

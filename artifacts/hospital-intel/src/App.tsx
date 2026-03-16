@@ -9,12 +9,14 @@ import Dashboard from "@/pages/dashboard";
 import NewReport from "@/pages/new-report";
 import CaseDetail from "@/pages/case-detail";
 import ConsultationsPage from "@/pages/consultations";
+import TransfersPage from "@/pages/transfers";
+import DoctorsPage from "@/pages/doctors";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
     },
   },
 });
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/new" component={NewReport} />
       <Route path="/cases/:id" component={CaseDetail} />
       <Route path="/consultations" component={ConsultationsPage} />
+      <Route path="/transfers" component={TransfersPage} />
+      <Route path="/doctors" component={DoctorsPage} />
       <Route component={NotFound} />
     </Switch>
   );

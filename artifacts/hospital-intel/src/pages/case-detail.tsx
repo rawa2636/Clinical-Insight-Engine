@@ -1,22 +1,75 @@
+import { useState } from "react";
 import { useRoute, Link, useLocation } from "wouter";
-import { useGetCase, useDeleteCase, useAcknowledgeCase } from "@workspace/api-client-react";
+import { useGetCase, useDeleteCase, useAcknowledgeCase, useAssignDoctor, useUpdateDiagnosis, useListDoctors, getGetCaseQueryKey, getListCasesQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   ArrowLeft, Activity, User, Clock, AlertTriangle, 
   Trash2, ShieldAlert, HeartPulse, Stethoscope, 
-  FileText, CheckCircle2, Video
+  FileText, CheckCircle2, Video, ArrowLeftRight, 
+  UserCheck, ClipboardList, Building2, Loader2,
+  ChevronDown, ChevronUp
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+const CASE_STATUS_STEPS = [
+  { key: "REPORT_RECEIVED", label: "Report Received", labelAr: "تم الاستلام" },
+  { key: "ANALYZED", label: "Analyzed", labelAr: "تم التحليل" },
+  { key: "CASE_CREATED", label: "Case Created", labelAr: "تم الإنشاء" },
+  { key: "ROUTED_TO_HOSPITAL", label: "Routed", labelAr: "تم التحويل" },
+  { key: "RECEIVED_BY_HOSPITAL", label: "Received", labelAr: "تم الاستقبال" },
+  { key: "ASSIGNED_TO_DOCTOR", label: "Assigned", labelAr: "تم التعيين" },
+  { key: "DIAGNOSIS_IN_PROGRESS", label: "In Progress", labelAr: "قيد التشخيص" },
+  { key: "COMPLETED", label: "Completed", labelAr: "مكتمل" },
+];
+
+const STATUS_ORDER = CASE_STATUS_STEPS.map(s => s.key);
+
+type Doctor = {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  specialtyLabelEn: string;
+  specialtyLabelAr: string;
+  avatarInitials: string;
+  isAvailable: boolean;
+  rating: number;
+};
 
 export default function CaseDetail() {
   const [, params] = useRoute("/cases/:id");
   const [, setLocation] = useLocation();
   const id = params?.id ? parseInt(params.id) : 0;
-  
+  const queryClient = useQueryClient();
+
   const { data: caseData, isLoading, error } = useGetCase(id);
+  const { data: allDoctors = [] } = useListDoctors();
   const { mutate: deleteCase, isPending: isDeleting } = useDeleteCase();
   const { mutate: acknowledge, isPending: isAcknowledging } = useAcknowledgeCase();
+  const { mutate: assignDoctor, isPending: isAssigning } = useAssignDoctor({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetCaseQueryKey(id) });
+        queryClient.invalidateQueries({ queryKey: getListCasesQueryKey() });
+        setShowAssignPanel(false);
+      },
+    },
+  });
+  const { mutate: updateDiagnosis, isPending: isSavingDiagnosis } = useUpdateDiagnosis({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetCaseQueryKey(id) });
+        setDiagnosisEditing(false);
+      },
+    },
+  });
+
+  const [showAssignPanel, setShowAssignPanel] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+  const [diagnosisEditing, setDiagnosisEditing] = useState(false);
+  const [diagnosisText, setDiagnosisText] = useState("");
+  const [diagnosisStatus, setDiagnosisStatus] = useState<"DIAGNOSIS_IN_PROGRESS" | "COMPLETED">("DIAGNOSIS_IN_PROGRESS");
 
   if (isLoading) return (
     <div className="flex-1 flex flex-col items-center justify-center">
@@ -46,6 +99,9 @@ export default function CaseDetail() {
 
   const isCriticalAlert = caseData.riskLevel === 'CRITICAL' && !caseData.acknowledged;
   const needsConsultation = caseData.recommendedAction === 'SCHEDULE_CONSULTATION' || caseData.recommendedAction === 'HOSPITAL_VISIT';
+  const currentStatusIdx = STATUS_ORDER.indexOf(caseData.caseStatus ?? "CASE_CREATED");
+  const availableDoctors = (allDoctors as Doctor[]).filter(d => d.isAvailable);
+  const assignedDoctor = (caseData as any).assignedDoctor as Doctor | null;
 
   return (
     <div className="flex-1 overflow-auto bg-background/50 p-4 md:p-8">
@@ -71,6 +127,13 @@ export default function CaseDetail() {
               </Link>
             )}
 
+            <Link
+              href={`/transfers?caseId=${caseData.id}`}
+              className="flex items-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground text-sm font-semibold rounded-xl transition-colors"
+            >
+              <ArrowLeftRight className="w-4 h-4 mr-2 text-primary" /> Route to Hospital
+            </Link>
+
             {isCriticalAlert && (
               <button
                 onClick={() => acknowledge({ id })}
@@ -93,6 +156,38 @@ export default function CaseDetail() {
             >
               <Trash2 className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+
+        {/* Case Lifecycle Status Bar */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-sm overflow-x-auto">
+          <div className="flex items-center gap-1 min-w-max">
+            {CASE_STATUS_STEPS.map((step, idx) => {
+              const isCompleted = idx < currentStatusIdx;
+              const isCurrent = idx === currentStatusIdx;
+              return (
+                <div key={step.key} className="flex items-center">
+                  <div className={cn(
+                    "flex flex-col items-center px-3 py-2 rounded-xl transition-all",
+                    isCurrent ? "bg-primary/10 border border-primary/30" : isCompleted ? "opacity-70" : "opacity-30"
+                  )}>
+                    <div className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black mb-1",
+                      isCurrent ? "bg-primary text-white" : isCompleted ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
+                    )}>
+                      {isCompleted ? "✓" : idx + 1}
+                    </div>
+                    <span className={cn("text-[9px] font-bold uppercase tracking-wide whitespace-nowrap", isCurrent ? "text-primary" : "text-muted-foreground")}>
+                      {step.label}
+                    </span>
+                    <span className="text-[8px] text-muted-foreground font-arabic" dir="rtl">{step.labelAr}</span>
+                  </div>
+                  {idx < CASE_STATUS_STEPS.length - 1 && (
+                    <div className={cn("w-6 h-0.5 mx-0.5", idx < currentStatusIdx ? "bg-green-500" : "bg-border")} />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -128,13 +223,18 @@ export default function CaseDetail() {
                   </div>
                 </div>
                 
-                <div className="text-left sm:text-right">
+                <div className="text-left sm:text-right space-y-2">
                   <Badge variant={getRiskColor(caseData.riskLevel) as any} className="text-sm px-3 py-1 uppercase">
                     {caseData.riskLevel} RISK
                   </Badge>
-                  <p className="mt-2 text-xs font-bold text-foreground bg-muted px-3 py-1.5 rounded-lg inline-block border border-border">
+                  <p className="text-xs font-bold text-foreground bg-muted px-3 py-1.5 rounded-lg inline-block border border-border">
                     ACTION: {caseData.recommendedAction.replace('_', ' ')}
                   </p>
+                  {caseData.recommendedDepartment && (
+                    <p className="flex items-center gap-1.5 text-xs text-primary font-semibold bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20">
+                      <Building2 className="w-3.5 h-3.5" /> {caseData.recommendedDepartment}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -178,6 +278,139 @@ export default function CaseDetail() {
                 <p className="text-foreground/90 leading-relaxed font-arabic text-base text-right whitespace-pre-wrap" dir="rtl">
                   {caseData.briefArabic}
                 </p>
+              </div>
+            </div>
+
+            {/* Doctor Assignment Panel */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <button
+                onClick={() => setShowAssignPanel(!showAssignPanel)}
+                className="w-full flex items-center justify-between p-5 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-2 rounded-xl", assignedDoctor ? "bg-green-500/10 text-green-600" : "bg-primary/10 text-primary")}>
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-foreground">Doctor Assignment</p>
+                    <p className="text-xs text-muted-foreground">
+                      {assignedDoctor ? `Assigned: Dr. ${assignedDoctor.nameEn} — ${assignedDoctor.specialtyLabelEn}` : "No doctor assigned yet"}
+                    </p>
+                  </div>
+                </div>
+                {showAssignPanel ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              </button>
+
+              {showAssignPanel && (
+                <div className="border-t border-border p-5 space-y-4 bg-muted/20">
+                  {assignedDoctor && (
+                    <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-400/20 rounded-xl text-sm">
+                      <div className="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center text-green-700 font-black text-xs">
+                        {assignedDoctor.avatarInitials}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-700">{assignedDoctor.nameEn}</p>
+                        <p className="text-xs text-green-600">{assignedDoctor.specialtyLabelEn}</p>
+                      </div>
+                      <CheckCircle2 className="w-4 h-4 text-green-600 ml-auto" />
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <select
+                      value={selectedDoctorId}
+                      onChange={e => setSelectedDoctorId(e.target.value)}
+                      className="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      <option value="">— Select a doctor —</option>
+                      {availableDoctors.map((d: Doctor) => (
+                        <option key={d.id} value={d.id}>
+                          {d.nameEn} — {d.specialtyLabelEn} ⭐ {d.rating}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        if (selectedDoctorId) assignDoctor({ id, data: { doctorId: parseInt(selectedDoctorId) } });
+                      }}
+                      disabled={!selectedDoctorId || isAssigning}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-40"
+                    >
+                      {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                      Assign
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Only currently available doctors are shown.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Diagnosis Notes */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between p-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-secondary/10 text-secondary">
+                    <ClipboardList className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Diagnosis Notes</p>
+                    <p className="text-xs text-muted-foreground">ملاحظات التشخيص</p>
+                  </div>
+                </div>
+                {!diagnosisEditing && (
+                  <button
+                    onClick={() => { setDiagnosisEditing(true); setDiagnosisText(caseData.diagnosisNotes ?? ""); }}
+                    className="px-3 py-1.5 bg-card border border-border hover:bg-muted rounded-lg text-xs font-semibold text-muted-foreground transition-colors"
+                  >
+                    {caseData.diagnosisNotes ? "Edit" : "+ Add Notes"}
+                  </button>
+                )}
+              </div>
+
+              <div className="border-t border-border p-5">
+                {diagnosisEditing ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={diagnosisText}
+                      onChange={e => setDiagnosisText(e.target.value)}
+                      rows={5}
+                      placeholder="Enter diagnosis, findings, treatment plan..."
+                      className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                    />
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={diagnosisStatus}
+                        onChange={e => setDiagnosisStatus(e.target.value as any)}
+                        className="bg-background border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground focus:outline-none"
+                      >
+                        <option value="DIAGNOSIS_IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Mark Completed</option>
+                      </select>
+                      <button
+                        onClick={() => updateDiagnosis({ id, data: { diagnosisNotes: diagnosisText, status: diagnosisStatus } })}
+                        disabled={!diagnosisText || isSavingDiagnosis}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-sm font-bold transition-colors disabled:opacity-40"
+                      >
+                        {isSavingDiagnosis ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setDiagnosisEditing(false)}
+                        className="px-3 py-2 bg-card border border-border hover:bg-muted text-muted-foreground rounded-xl text-sm transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : caseData.diagnosisNotes ? (
+                  <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap bg-muted/40 p-4 rounded-xl border border-border/50">
+                    {caseData.diagnosisNotes}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl border border-dashed border-border text-center">
+                    No diagnosis notes recorded yet.
+                  </p>
+                )}
               </div>
             </div>
             

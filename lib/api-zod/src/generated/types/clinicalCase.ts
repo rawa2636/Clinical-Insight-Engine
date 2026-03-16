@@ -5,6 +5,7 @@
  * Hospital Intelligence Platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { CaseStatus } from "./caseStatus";
 import type { RecommendedAction } from "./recommendedAction";
 import type { RiskLevel } from "./riskLevel";
 import type { VitalSigns } from "./vitalSigns";
@@ -27,6 +28,10 @@ export interface ClinicalCase {
   briefEnglish: string;
   briefArabic: string;
   acknowledged: boolean;
+  caseStatus: CaseStatus;
+  assignedDoctorId?: number;
+  diagnosisNotes?: string;
+  recommendedDepartment?: string;
   createdAt: Date;
   updatedAt: Date;
 }

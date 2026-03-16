@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, casesTable } from "@workspace/db";
+import { db, casesTable, doctorsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { analyzeRisk, generateBriefEnglish, generateBriefArabic } from "../lib/riskEngine.js";
+import { analyzeRisk, generateBriefEnglish, generateBriefArabic, recommendDepartment } from "../lib/riskEngine.js";
 
 const router: IRouter = Router();
 
@@ -33,7 +33,14 @@ router.get("/cases/:id", async (req: Request, res: Response) => {
       res.status(404).json({ error: "Case not found" });
       return;
     }
-    res.json(caseRecord);
+    let assignedDoctor = null;
+    if (caseRecord.assignedDoctorId) {
+      const [doc] = await db.select().from(doctorsTable).where(eq(doctorsTable.id, caseRecord.assignedDoctorId));
+      if (doc) {
+        assignedDoctor = { ...doc, rating: parseFloat(doc.rating), consultationFeeUsd: parseFloat(doc.consultationFeeUsd) };
+      }
+    }
+    res.json({ ...caseRecord, assignedDoctor });
   } catch (err) {
     console.error("Error getting case:", err);
     res.status(500).json({ error: "Failed to retrieve case" });
@@ -82,6 +89,8 @@ router.post("/cases", async (req: Request, res: Response) => {
       medicalHistory: body.medicalHistory,
     });
 
+    const recommendedDepartment = recommendDepartment(body.symptoms, body.chiefComplaint, analysis.riskLevel);
+
     const briefEnglish = generateBriefEnglish({
       patientName: body.patientName,
       age: body.age,
@@ -127,6 +136,8 @@ router.post("/cases", async (req: Request, res: Response) => {
         briefEnglish,
         briefArabic,
         acknowledged: false,
+        caseStatus: "CASE_CREATED",
+        recommendedDepartment,
       })
       .returning();
 
@@ -157,6 +168,99 @@ router.post("/cases/:id/acknowledge", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Error acknowledging case:", err);
     res.status(500).json({ error: "Failed to acknowledge case" });
+  }
+});
+
+router.post("/cases/:id/assign-doctor", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid case ID" });
+      return;
+    }
+    const body = req.body as { doctorId: number };
+    if (!body.doctorId) {
+      res.status(400).json({ error: "doctorId is required" });
+      return;
+    }
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.id, body.doctorId));
+    if (!doctor) {
+      res.status(404).json({ error: "Doctor not found" });
+      return;
+    }
+    const [updated] = await db
+      .update(casesTable)
+      .set({ assignedDoctorId: body.doctorId, caseStatus: "ASSIGNED_TO_DOCTOR", updatedAt: new Date() })
+      .where(eq(casesTable.id, id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Case not found" });
+      return;
+    }
+    res.json({
+      ...updated,
+      assignedDoctor: { ...doctor, rating: parseFloat(doctor.rating), consultationFeeUsd: parseFloat(doctor.consultationFeeUsd) },
+    });
+  } catch (err) {
+    console.error("Error assigning doctor:", err);
+    res.status(500).json({ error: "Failed to assign doctor" });
+  }
+});
+
+router.post("/cases/:id/diagnosis", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid case ID" });
+      return;
+    }
+    const body = req.body as { diagnosisNotes: string; status?: "DIAGNOSIS_IN_PROGRESS" | "COMPLETED" };
+    if (!body.diagnosisNotes) {
+      res.status(400).json({ error: "diagnosisNotes is required" });
+      return;
+    }
+    const newStatus = body.status ?? "DIAGNOSIS_IN_PROGRESS";
+    const [updated] = await db
+      .update(casesTable)
+      .set({ diagnosisNotes: body.diagnosisNotes, caseStatus: newStatus, updatedAt: new Date() })
+      .where(eq(casesTable.id, id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Case not found" });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    console.error("Error updating diagnosis:", err);
+    res.status(500).json({ error: "Failed to update diagnosis" });
+  }
+});
+
+router.post("/cases/:id/update-status", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid case ID" });
+      return;
+    }
+    const body = req.body as { caseStatus: string };
+    if (!body.caseStatus) {
+      res.status(400).json({ error: "caseStatus is required" });
+      return;
+    }
+    const [updated] = await db
+      .update(casesTable)
+      .set({ caseStatus: body.caseStatus as any, updatedAt: new Date() })
+      .where(eq(casesTable.id, id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Case not found" });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    console.error("Error updating status:", err);
+    res.status(500).json({ error: "Failed to update status" });
   }
 });
 

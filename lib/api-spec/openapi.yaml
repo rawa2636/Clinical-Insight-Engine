@@ -15,6 +15,10 @@ tags:
     description: Online doctor consultations
   - name: doctors
     description: Available doctors
+  - name: hospitals
+    description: Hospital network
+  - name: transfers
+    description: Hospital case transfers
 paths:
   /healthz:
     get:
@@ -122,6 +126,81 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClinicalCase"
 
+  /cases/{id}/assign-doctor:
+    post:
+      operationId: assignDoctor
+      tags: [cases]
+      summary: Assign a doctor to a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignDoctorRequest"
+      responses:
+        "200":
+          description: Doctor assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+
+  /cases/{id}/diagnosis:
+    post:
+      operationId: updateDiagnosis
+      tags: [cases]
+      summary: Doctor records diagnosis notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiagnosisRequest"
+      responses:
+        "200":
+          description: Diagnosis updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+
+  /cases/{id}/update-status:
+    post:
+      operationId: updateCaseStatus
+      tags: [cases]
+      summary: Update the lifecycle status of a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusRequest"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicalCase"
+
   /doctors:
     get:
       operationId: listDoctors
@@ -136,6 +215,175 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Doctor"
+
+  /hospitals:
+    get:
+      operationId: listHospitals
+      tags: [hospitals]
+      summary: List hospitals in the network
+      responses:
+        "200":
+          description: List of hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hospital"
+
+  /transfers:
+    get:
+      operationId: listTransfers
+      tags: [transfers]
+      summary: List all hospital transfers
+      responses:
+        "200":
+          description: List of transfers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transfer"
+    post:
+      operationId: createTransfer
+      tags: [transfers]
+      summary: Create a hospital transfer request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransferRequest"
+      responses:
+        "201":
+          description: Transfer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}:
+    get:
+      operationId: getTransfer
+      tags: [transfers]
+      summary: Get a transfer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/accept:
+    post:
+      operationId: acceptTransfer
+      tags: [transfers]
+      summary: Accept an incoming transfer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/reject:
+    post:
+      operationId: rejectTransfer
+      tags: [transfers]
+      summary: Reject a transfer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Transfer rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/in-transit:
+    post:
+      operationId: markTransferInTransit
+      tags: [transfers]
+      summary: Mark transfer as in-transit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer in-transit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/arrived:
+    post:
+      operationId: markTransferArrived
+      tags: [transfers]
+      summary: Mark transfer as arrived
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer arrived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/cancel:
+    post:
+      operationId: cancelTransfer
+      tags: [transfers]
+      summary: Cancel a transfer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
 
   /consultations:
     get:
@@ -255,6 +503,18 @@ components:
       type: string
       enum: [LOW, MEDIUM, HIGH, CRITICAL]
 
+    CaseStatus:
+      type: string
+      enum:
+        - REPORT_RECEIVED
+        - ANALYZED
+        - CASE_CREATED
+        - ROUTED_TO_HOSPITAL
+        - RECEIVED_BY_HOSPITAL
+        - ASSIGNED_TO_DOCTOR
+        - DIAGNOSIS_IN_PROGRESS
+        - COMPLETED
+
     RecommendedAction:
       type: string
       enum:
@@ -266,6 +526,10 @@ components:
     ConsultationStatus:
       type: string
       enum: [SCHEDULED, ACTIVE, COMPLETED, CANCELLED]
+
+    TransferStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, IN_TRANSIT, ARRIVED, REJECTED, CANCELLED]
 
     Specialty:
       type: string
@@ -315,6 +579,33 @@ components:
         - chiefComplaint
         - symptoms
         - reportType
+
+    AssignDoctorRequest:
+      type: object
+      properties:
+        doctorId:
+          type: integer
+      required:
+        - doctorId
+
+    DiagnosisRequest:
+      type: object
+      properties:
+        diagnosisNotes:
+          type: string
+        status:
+          type: string
+          enum: [DIAGNOSIS_IN_PROGRESS, COMPLETED]
+      required:
+        - diagnosisNotes
+
+    UpdateStatusRequest:
+      type: object
+      properties:
+        caseStatus:
+          $ref: "#/components/schemas/CaseStatus"
+      required:
+        - caseStatus
 
     VitalSigns:
       type: object
@@ -373,6 +664,14 @@ components:
           type: string
         acknowledged:
           type: boolean
+        caseStatus:
+          $ref: "#/components/schemas/CaseStatus"
+        assignedDoctorId:
+          type: integer
+        diagnosisNotes:
+          type: string
+        recommendedDepartment:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -393,6 +692,148 @@ components:
         - briefEnglish
         - briefArabic
         - acknowledged
+        - caseStatus
+        - createdAt
+        - updatedAt
+
+    Hospital:
+      type: object
+      properties:
+        id:
+          type: integer
+        nameEn:
+          type: string
+        nameAr:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: string
+        level:
+          type: string
+      required:
+        - id
+        - nameEn
+        - nameAr
+        - city
+        - address
+        - phone
+        - specialties
+        - isAvailable
+        - level
+
+    CreateTransferRequest:
+      type: object
+      properties:
+        caseId:
+          type: integer
+        direction:
+          type: string
+          enum: [OUTGOING, INCOMING]
+        toHospitalId:
+          type: integer
+        fromHospitalId:
+          type: integer
+        patientName:
+          type: string
+        patientAge:
+          type: integer
+        patientGender:
+          type: string
+        chiefComplaint:
+          type: string
+        riskLevel:
+          type: string
+        transportMethod:
+          type: string
+          enum: [AMBULANCE, AIR_AMBULANCE, PRIVATE_VEHICLE, HOSPITAL_TRANSPORT]
+        clinicalSummary:
+          type: string
+        specialRequirements:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+      required:
+        - direction
+        - patientName
+        - patientAge
+        - patientGender
+        - chiefComplaint
+        - riskLevel
+        - transportMethod
+        - clinicalSummary
+
+    Transfer:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        direction:
+          type: string
+        fromHospitalId:
+          type: integer
+        toHospitalId:
+          type: integer
+        fromHospital:
+          $ref: "#/components/schemas/Hospital"
+        toHospital:
+          $ref: "#/components/schemas/Hospital"
+        patientName:
+          type: string
+        patientAge:
+          type: integer
+        patientGender:
+          type: string
+        chiefComplaint:
+          type: string
+        riskLevel:
+          type: string
+        transportMethod:
+          type: string
+        clinicalSummary:
+          type: string
+        specialRequirements:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/TransferStatus"
+        rejectionReason:
+          type: string
+        transferCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - direction
+        - fromHospitalId
+        - toHospitalId
+        - patientName
+        - patientAge
+        - patientGender
+        - chiefComplaint
+        - riskLevel
+        - transportMethod
+        - clinicalSummary
+        - status
+        - transferCode
         - createdAt
         - updatedAt
 

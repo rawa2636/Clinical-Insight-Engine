@@ -27,6 +27,19 @@ export const RiskLevel = {
   CRITICAL: "CRITICAL",
 } as const;
 
+export type CaseStatus = (typeof CaseStatus)[keyof typeof CaseStatus];
+
+export const CaseStatus = {
+  REPORT_RECEIVED: "REPORT_RECEIVED",
+  ANALYZED: "ANALYZED",
+  CASE_CREATED: "CASE_CREATED",
+  ROUTED_TO_HOSPITAL: "ROUTED_TO_HOSPITAL",
+  RECEIVED_BY_HOSPITAL: "RECEIVED_BY_HOSPITAL",
+  ASSIGNED_TO_DOCTOR: "ASSIGNED_TO_DOCTOR",
+  DIAGNOSIS_IN_PROGRESS: "DIAGNOSIS_IN_PROGRESS",
+  COMPLETED: "COMPLETED",
+} as const;
+
 export type RecommendedAction =
   (typeof RecommendedAction)[keyof typeof RecommendedAction];
 
@@ -44,6 +57,18 @@ export const ConsultationStatus = {
   SCHEDULED: "SCHEDULED",
   ACTIVE: "ACTIVE",
   COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+export type TransferStatus =
+  (typeof TransferStatus)[keyof typeof TransferStatus];
+
+export const TransferStatus = {
+  PENDING: "PENDING",
+  ACCEPTED: "ACCEPTED",
+  IN_TRANSIT: "IN_TRANSIT",
+  ARRIVED: "ARRIVED",
+  REJECTED: "REJECTED",
   CANCELLED: "CANCELLED",
 } as const;
 
@@ -101,6 +126,27 @@ export interface CreateCaseRequest {
   rawReport?: string;
 }
 
+export interface AssignDoctorRequest {
+  doctorId: number;
+}
+
+export type DiagnosisRequestStatus =
+  (typeof DiagnosisRequestStatus)[keyof typeof DiagnosisRequestStatus];
+
+export const DiagnosisRequestStatus = {
+  DIAGNOSIS_IN_PROGRESS: "DIAGNOSIS_IN_PROGRESS",
+  COMPLETED: "COMPLETED",
+} as const;
+
+export interface DiagnosisRequest {
+  diagnosisNotes: string;
+  status?: DiagnosisRequestStatus;
+}
+
+export interface UpdateStatusRequest {
+  caseStatus: CaseStatus;
+}
+
 export interface ClinicalCase {
   id: number;
   patientName: string;
@@ -119,6 +165,80 @@ export interface ClinicalCase {
   briefEnglish: string;
   briefArabic: string;
   acknowledged: boolean;
+  caseStatus: CaseStatus;
+  assignedDoctorId?: number;
+  diagnosisNotes?: string;
+  recommendedDepartment?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Hospital {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  city: string;
+  address: string;
+  phone: string;
+  specialties: string[];
+  isAvailable: string;
+  level: string;
+}
+
+export type CreateTransferRequestDirection =
+  (typeof CreateTransferRequestDirection)[keyof typeof CreateTransferRequestDirection];
+
+export const CreateTransferRequestDirection = {
+  OUTGOING: "OUTGOING",
+  INCOMING: "INCOMING",
+} as const;
+
+export type CreateTransferRequestTransportMethod =
+  (typeof CreateTransferRequestTransportMethod)[keyof typeof CreateTransferRequestTransportMethod];
+
+export const CreateTransferRequestTransportMethod = {
+  AMBULANCE: "AMBULANCE",
+  AIR_AMBULANCE: "AIR_AMBULANCE",
+  PRIVATE_VEHICLE: "PRIVATE_VEHICLE",
+  HOSPITAL_TRANSPORT: "HOSPITAL_TRANSPORT",
+} as const;
+
+export interface CreateTransferRequest {
+  caseId?: number;
+  direction: CreateTransferRequestDirection;
+  toHospitalId?: number;
+  fromHospitalId?: number;
+  patientName: string;
+  patientAge: number;
+  patientGender: string;
+  chiefComplaint: string;
+  riskLevel: string;
+  transportMethod: CreateTransferRequestTransportMethod;
+  clinicalSummary: string;
+  specialRequirements?: string;
+  estimatedArrival?: string;
+}
+
+export interface Transfer {
+  id: number;
+  caseId?: number;
+  direction: string;
+  fromHospitalId: number;
+  toHospitalId: number;
+  fromHospital?: Hospital;
+  toHospital?: Hospital;
+  patientName: string;
+  patientAge: number;
+  patientGender: string;
+  chiefComplaint: string;
+  riskLevel: string;
+  transportMethod: string;
+  clinicalSummary: string;
+  specialRequirements?: string;
+  estimatedArrival?: string;
+  status: TransferStatus;
+  rejectionReason?: string;
+  transferCode: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -176,3 +296,7 @@ export interface JoinConsultationResponse {
   joinUrl: string;
   status: ConsultationStatus;
 }
+
+export type RejectTransferBody = {
+  reason?: string;
+};

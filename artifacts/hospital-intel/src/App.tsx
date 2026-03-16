@@ -11,6 +11,7 @@ import CaseDetail from "@/pages/case-detail";
 import ConsultationsPage from "@/pages/consultations";
 import TransfersPage from "@/pages/transfers";
 import DoctorsPage from "@/pages/doctors";
+import ReferralPathwayPage from "@/pages/referral-pathway";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/consultations" component={ConsultationsPage} />
       <Route path="/transfers" component={TransfersPage} />
       <Route path="/doctors" component={DoctorsPage} />
+      <Route path="/referral-pathway" component={ReferralPathwayPage} />
       <Route component={NotFound} />
     </Switch>
   );

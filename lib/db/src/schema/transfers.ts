@@ -42,6 +42,9 @@ export const hospitalsTable = pgTable("hospitals", {
   specialties: jsonb("specialties").notNull().$type<string[]>(),
   isAvailable: text("is_available").notNull().default("true"),
   level: text("level").notNull().default("TERTIARY"),
+  pathwayOrder: integer("pathway_order"),
+  riskReduction: integer("risk_reduction").default(0),
+  distanceToNext: integer("distance_to_next").default(0),
 });
 
 export const transfersTable = pgTable("hospital_transfers", {

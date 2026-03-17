@@ -5,8 +5,6 @@ import { randomBytes } from "crypto";
 
 const router: IRouter = Router();
 
-const THIS_HOSPITAL_ID = 1;
-
 function generateTransferCode(): string {
   return `TRF-${randomBytes(3).toString("hex").toUpperCase()}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
 }
@@ -84,8 +82,13 @@ router.post("/transfers", async (req: Request, res: Response) => {
       return;
     }
 
-    const fromHospitalId = body.direction === "OUTGOING" ? THIS_HOSPITAL_ID : (body.fromHospitalId ?? 2);
-    const toHospitalId = body.direction === "OUTGOING" ? (body.toHospitalId ?? 2) : THIS_HOSPITAL_ID;
+    if (!body.fromHospitalId || !body.toHospitalId) {
+      res.status(400).json({ error: "fromHospitalId and toHospitalId are required" });
+      return;
+    }
+
+    const fromHospitalId = body.fromHospitalId;
+    const toHospitalId = body.toHospitalId;
 
     const [newTransfer] = await db
       .insert(transfersTable)
@@ -186,6 +189,11 @@ router.post("/transfers/:id/in-transit", async (req: Request, res: Response) => 
       .where(eq(transfersTable.id, id))
       .returning();
     if (!updated) { res.status(404).json({ error: "Transfer not found" }); return; }
+    if (updated.caseId) {
+      await db.update(casesTable)
+        .set({ caseStatus: "ROUTED_TO_HOSPITAL", updatedAt: new Date() })
+        .where(eq(casesTable.id, updated.caseId));
+    }
     res.json(await enrichTransfer(updated));
   } catch (err) {
     console.error("Error updating transfer:", err);
@@ -203,6 +211,11 @@ router.post("/transfers/:id/arrived", async (req: Request, res: Response) => {
       .where(eq(transfersTable.id, id))
       .returning();
     if (!updated) { res.status(404).json({ error: "Transfer not found" }); return; }
+    if (updated.caseId) {
+      await db.update(casesTable)
+        .set({ caseStatus: "RECEIVED_BY_HOSPITAL", updatedAt: new Date() })
+        .where(eq(casesTable.id, updated.caseId));
+    }
     res.json(await enrichTransfer(updated));
   } catch (err) {
     console.error("Error updating transfer:", err);

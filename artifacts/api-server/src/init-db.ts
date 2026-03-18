@@ -153,7 +153,7 @@ export async function initDb() {
     },
     {
       nameEn: "Dr. Faisal Al-Dossari", nameAr: "د. فيصل الدوسري",
-      specialty: "SURGERY", specialtyLabelEn: "General Surgery", specialtyLabelAr: "الجراحة العامة",
+      specialty: "GENERAL", specialtyLabelEn: "General Surgery", specialtyLabelAr: "الجراحة العامة",
       qualifications: "MD, FACS — General Surgery",
       experience: 22, rating: "4.9", avatarInitials: "FD", isAvailable: true,
       consultationFeeUsd: "200.00", languages: ["Arabic", "English"],
@@ -167,14 +167,14 @@ export async function initDb() {
     },
     {
       nameEn: "Dr. Omar Al-Shamri", nameAr: "د. عمر الشمري",
-      specialty: "RADIOLOGY", specialtyLabelEn: "Radiology", specialtyLabelAr: "الأشعة",
+      specialty: "GENERAL", specialtyLabelEn: "Radiology & Imaging", specialtyLabelAr: "الأشعة والتصوير",
       qualifications: "MD, Board Certified Radiologist",
       experience: 14, rating: "4.4", avatarInitials: "OS", isAvailable: true,
       consultationFeeUsd: "110.00", languages: ["Arabic", "English"],
     },
     {
       nameEn: "Dr. Reem Al-Mutairi", nameAr: "د. ريم المطيري",
-      specialty: "OBSTETRICS", specialtyLabelEn: "Obstetrics & Gynecology", specialtyLabelAr: "أمراض النساء والتوليد",
+      specialty: "GENERAL", specialtyLabelEn: "Obstetrics & Gynecology", specialtyLabelAr: "أمراض النساء والتوليد",
       qualifications: "MD, OB/GYN Specialist",
       experience: 16, rating: "4.7", avatarInitials: "RM", isAvailable: false,
       consultationFeeUsd: "130.00", languages: ["Arabic", "English"],
